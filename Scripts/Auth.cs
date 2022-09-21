@@ -38,27 +38,35 @@ namespace Elixir {
                 UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
                 yield break;
             }
-            timeToRefreshToken = (tokenResponse.data.tokenLifeMS / 1000) - 5;
-            UnityEngine.PlayerPrefs.SetString(ElixirController.Instance.PlayerPrefsKey, tokenResponse.data.refreshToken);
+            SaveRefreshToken();
         }
         public class SyncRefreshBody {
             public string refreshToken;
         }
         public static IEnumerator Refresh() {
             lastError = true;
-            tokenResponse.data.refreshToken = UnityEngine.PlayerPrefs.GetString(ElixirController.Instance.PlayerPrefsKey);
+            LoadRefreshToken();
             if (!string.IsNullOrEmpty(tokenResponse.data.refreshToken))
                 yield return Post( $"/auth/refresh-session", new SyncRefreshBody { refreshToken = tokenResponse.data.refreshToken }, tokenResponse);
-            if (lastError) {
-//                ElixirController.Instance.dialog.Show($"Error [{error.message}]", $"There is a problem with your account.", "Accept", () => { UnityEngine.Application.Quit(); });
-                UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+            if (!lastError) {                
+                SaveRefreshToken();
+            } else {
+                ClearRefreshToken();
                 yield break;
             }
+        }
+        static void LoadRefreshToken() {
+            tokenResponse.data.refreshToken = UnityEngine.PlayerPrefs.GetString(ElixirController.Instance.PlayerPrefsKey);
+        }
+        static void SaveRefreshToken() {
             timeToRefreshToken = (tokenResponse.data.tokenLifeMS / 1000) - 5;
             UnityEngine.PlayerPrefs.SetString(ElixirController.Instance.PlayerPrefsKey, tokenResponse.data.refreshToken);
         }
+        static void ClearRefreshToken() {
+            UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+        }
 #if UNITY_ANDROID || UNITY_IOS
-        static LoginRequestResponse loginRequestResponse = new LoginRequestResponse();
+        public static LoginRequestResponse loginRequestResponse = new LoginRequestResponse();
         public static IEnumerator InitMail(string email, errorCallback OnError = null) {
             yield return LoginRequest(email, loginRequestResponse);
             if (lastError) OnError?.Invoke(error.code, error.message);
@@ -71,8 +79,7 @@ namespace Elixir {
 #endif
             yield return LoginVerify(loginRequestResponse.data.transactionId, userCode);
             if (!lastError) {
-                timeToRefreshToken = (tokenResponse.data.tokenLifeMS / 1000) - 5;
-                UnityEngine.PlayerPrefs.SetString(ElixirController.Instance.PlayerPrefsKey, tokenResponse.data.refreshToken);
+                SaveRefreshToken();
             } else {
                 OnError?.Invoke(error.code, error.message);
                 UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
@@ -84,20 +91,20 @@ namespace Elixir {
             public string deviceUniqueIdentifier;
             public string qrValue;
         }
-        public IEnumerator VerifyQR(string qrValue, callback OnOk = null, errorCallback OnError = null) {
+        public static IEnumerator VerifyQR(string qrValue, errorCallback OnError = null) {
             var body = new VerifyQRBody() {
                 qrValue = qrValue,
                 deviceModel = UnityEngine.SystemInfo.deviceModel,
                 deviceUniqueIdentifier = UnityEngine.SystemInfo.deviceUniqueIdentifier
             };
             yield return Post($"/auth/qr-verify", body, tokenResponse);
-            if (lastError) {
+            if (!lastError) {
+                SaveRefreshToken();
+            } else { 
                 OnError?.Invoke(error.code, error.message);
-                UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+                ClearRefreshToken();
                 yield break;
             }
-            timeToRefreshToken = (tokenResponse.data.tokenLifeMS / 1000) - 5;
-            UnityEngine.PlayerPrefs.SetString(ElixirController.Instance.PlayerPrefsKey, tokenResponse.data.refreshToken);
         }
         public class LoginVerifyBody {
             public string transactionId;
@@ -114,11 +121,10 @@ namespace Elixir {
             };
             yield return Post($"/auth/otp-verify", body, tokenResponse);
             if (lastError) {
-                UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+                ClearRefreshToken();
                 yield break;
             }
-            timeToRefreshToken = (tokenResponse.data.tokenLifeMS / 1000) - 5;
-            UnityEngine.PlayerPrefs.SetString(ElixirController.Instance.PlayerPrefsKey, tokenResponse.data.refreshToken);
+            SaveRefreshToken();
             // Wait for two seconds just in case new account has been created.
             if (tokenResponse.data.newAccount)
                 yield return new UnityEngine.WaitForSeconds(2);
@@ -141,10 +147,11 @@ namespace Elixir {
         }
         public static bool IsLoged() { return !string.IsNullOrEmpty(token); }
         public static IEnumerator Logout() {
-            yield return Get($"/auth/{GameID}/closerei", null);
+            if(!string.IsNullOrEmpty(token))
+                yield return Get($"/auth/{GameID}/closerei", null);
             token = null;
             tokenResponse.data.refreshToken = null;
-            UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+            ClearRefreshToken();
         }
 #endif
         public static void Close() {

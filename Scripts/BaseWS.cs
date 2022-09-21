@@ -19,7 +19,7 @@ namespace Elixir
         [System.Serializable]
         public class Error
         {
-            public int status = 0;
+            public bool success = true;
             public int code = 0;
             public string message = "-1";
         }
@@ -39,7 +39,7 @@ namespace Elixir
         }
         protected static IEnumerator MakeRequest(string uri, string body, object target) {
             lastError = true;
-            error.status = 0;
+            error.success = false;
             error.code = 0;
             ulong epoch = GetEpoch();
             UnityWebRequest www;
@@ -71,10 +71,9 @@ namespace Elixir
                     string text = www.downloadHandler.text;
                     if (text[0] != '[') { // is not an array.
                         if(target!=null) JsonUtility.FromJsonOverwrite(text, target);
-                        if (error.status != 0) {
-                            if (error.code != 0 )
-                                throw new System.Exception($"Error on request status: {error.status} errorCode: {error.code} msg: {error.message}");
-                        }
+                        JsonUtility.FromJsonOverwrite(text, error);
+                        if (!error.success) 
+                                throw new System.Exception($"Error on request. errorCode: {error.code} msg: {error.message}");
                     }
                     lastError = false;
                 }

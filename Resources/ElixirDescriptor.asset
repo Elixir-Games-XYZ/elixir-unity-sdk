@@ -20,4 +20,4 @@ MonoBehaviour:
     APIKey: fbefa09f-cfb8-401f-9ff0-084ce985d444
     GameID: 0d3a01eb-73dd-4f7b-a81f-91aa0e7420c6
   InEditor: 0
-  InBuild: 0
+  InBuild: 1
