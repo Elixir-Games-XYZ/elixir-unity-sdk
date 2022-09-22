@@ -15,11 +15,9 @@ public class QRCodeReader : MonoBehaviour {
 #if UNITY_ANDROID || UNITY_IOS
     WebCamTexture   camTexture;
     RectTransform webcamRT;
-    AspectRatioFitter webcamAR;
     System.Threading.Thread qrThread;
     void Awake() {
         webcamRT = webcam.GetComponent<RectTransform>();
-        webcamAR = webcam.GetComponent<AspectRatioFitter>();
     }
     IEnumerator Start() {
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -38,9 +36,7 @@ public class QRCodeReader : MonoBehaviour {
             yield break;
         }
 #endif
-        if (camTexture == null) {
-            camTexture = new WebCamTexture(Screen.width, Screen.height);
-        }
+        if (camTexture == null) camTexture = new WebCamTexture(Screen.width, Screen.height);
         webcam.texture = camTexture;
         camTexture?.Play();
         oldResult = "";
@@ -52,9 +48,7 @@ public class QRCodeReader : MonoBehaviour {
 
     private void OnEnable() {
         if (Application.HasUserAuthorization(UserAuthorization.WebCam)) {
-            if (camTexture == null) {
-                camTexture = new WebCamTexture(Screen.width, Screen.height);
-            }
+            if (camTexture == null) camTexture = new WebCamTexture(Screen.width, Screen.height);
             webcam.texture = camTexture;
         }
         camTexture?.Play();
@@ -63,11 +57,11 @@ public class QRCodeReader : MonoBehaviour {
     }
     private void OnDisable() {
         camTexture?.Pause();
-        camTexture = null;
     }
     void OnDestroy() {
         qrThread.Abort();
         camTexture?.Stop();
+        camTexture = null;
     }
     string qrCode="";
     string oldResult="";    
@@ -79,19 +73,6 @@ public class QRCodeReader : MonoBehaviour {
     void FixedUpdate() {
         // Check if webcam is working
         if (camTexture != null && camTexture.isPlaying && camTexture.didUpdateThisFrame && camTexture.width > 16) {
-            /*
-            // Adjust image.
-            int cwNeeded = camTexture.videoRotationAngle;
-            int ccwNeeded = -cwNeeded;
-            if (camTexture.videoVerticallyMirrored) ccwNeeded += 180;
-            webcamRT.localEulerAngles = new Vector3(0f, 0f, ccwNeeded);
-            float videoRatio = (float)camTexture.width / (float)camTexture.height;
-            webcamAR.aspectRatio = videoRatio;
-            if (camTexture.videoVerticallyMirrored)
-                webcam.uvRect = new Rect(1, 0, -1, 1);  // means flip on vertical axis
-            else
-                webcam.uvRect = new Rect(0, 0, 1, 1);  // means no flip
-*/
 #if UNITY_IOS
         if(camTexture.videoRotationAngle == 0)
             webcamRT.localScale = new Vector3( 1,-1, 1);
