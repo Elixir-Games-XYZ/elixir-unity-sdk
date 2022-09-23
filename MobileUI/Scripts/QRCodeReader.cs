@@ -95,10 +95,11 @@ public class QRCodeReader : MonoBehaviour {
             
 #endif
             */
+            webcamRT.localScale = localScale;
             lock (qrCode) {
                 lock (qrData) {
                     if (qrCode == "" && qrData.Length==0) {
-                        //Debug.Log($"camTexture videoVerticallyMirrored {camTexture.videoVerticallyMirrored} videoRotationAngle {camTexture.videoRotationAngle}");
+                        Debug.Log($"camTexture videoVerticallyMirrored {camTexture.videoVerticallyMirrored} videoRotationAngle {camTexture.videoRotationAngle}");
                         // Get new data to process.
                         qrData = camTexture.GetPixels32();
                         qrWidth = camTexture.width;
