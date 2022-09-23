@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4a4876d10f971d4983fb24edf633d7c, type: 3}
   m_Name: ElixirDescriptor
   m_EditorClassIdentifier: 
-  useconsole: 1
+  useconsole: 0
   Sanbox:
-    APIKey: fbefa09f-cfb8-401f-9ff0-084ce985d444
-    GameID: 0d3a01eb-73dd-4f7b-a81f-91aa0e7420c6
+    APIKey: f97ddcaa-4d40-4e23-b98a-9b911fb4d2a4
+    GameID: 8004dd86-7bd6-4d40-8086-0663f8eadc1f
   Production:
-    APIKey: fbefa09f-cfb8-401f-9ff0-084ce985d444
-    GameID: 0d3a01eb-73dd-4f7b-a81f-91aa0e7420c6
+    APIKey: 73f0ebfc-6bed-4ff8-af3e-f75434dabe13
+    GameID: 8004dd86-7bd6-4d40-8086-0663f8eadc1f
   InEditor: 0
   InBuild: 1
