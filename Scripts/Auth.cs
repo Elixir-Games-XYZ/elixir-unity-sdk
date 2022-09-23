@@ -74,7 +74,7 @@ namespace Elixir {
 
         public static IEnumerator ConfirmMail(string userCode, errorCallback OnError = null) {
 #if UNITY_EDITOR
-            if(!string.IsNullOrEmpty(loginRequestResponse.data.userCode))
+            if(!string.IsNullOrEmpty(loginRequestResponse.data.userCode.TrimEnd()))
                 userCode = loginRequestResponse.data.userCode;
 #endif
             yield return LoginVerify(loginRequestResponse.data.transactionId, userCode);
