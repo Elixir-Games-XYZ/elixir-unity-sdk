@@ -64,7 +64,7 @@ public class InitSceneController : MonoBehaviour {
         // Ask for user data.
         yield return GetUserData();
         if (!Elixir.BaseWS.lastError) yield return GetCollections();
-        UserDataController.Instance.Show();
+        if (!Elixir.BaseWS.lastError) UserDataController.Instance.Show();
     }
     IEnumerator GetUserData() {
         // Get user data.

@@ -16,6 +16,7 @@ public class QRCodeReader : MonoBehaviour {
     WebCamTexture   camTexture;
     RectTransform webcamRT;
     System.Threading.Thread qrThread;
+    bool DecodeQRRunning;
     void Awake() {
         webcamRT = webcam.GetComponent<RectTransform>();
     }
@@ -59,7 +60,8 @@ public class QRCodeReader : MonoBehaviour {
         camTexture?.Pause();
     }
     void OnDestroy() {
-        qrThread.Abort();
+        DecodeQRRunning = false;
+        //qrThread.Abort();
         camTexture?.Stop();
         camTexture = null;
     }
@@ -81,20 +83,7 @@ public class QRCodeReader : MonoBehaviour {
             if (camTexture.videoVerticallyMirrored) {
                 localScale.y *= -1;
             }
-            /*
-#if UNITY_IOS
-            if(camTexture.videoRotationAngle == 0)
-                webcamRT.localScale = new Vector3( 1,-1, 1);
-            else
-                webcamRT.localScale = new Vector3(-1, 1, 1);
-#else
-            if (camTexture.videoRotationAngle == 0)
-                webcamRT.localScale = new Vector3(1, 1, 1);
-            else
-                webcamRT.localScale = new Vector3(-1, -1, 1);
-            
-#endif
-            */
+
             webcamRT.localScale = localScale;
             lock (qrCode) {
                 lock (qrData) {
@@ -116,7 +105,8 @@ public class QRCodeReader : MonoBehaviour {
 
     void DecodeQR() {
         IBarcodeReader barcodeReader = new BarcodeReader { AutoRotate = true, Options = { TryHarder = false }  };
-        while (true) {
+        DecodeQRRunning = true;
+        while (DecodeQRRunning) {
             Color32[] tmpData = null;
             lock (qrData) if(qrData.Length > 0) tmpData = qrData;
             if (tmpData!=null) {
@@ -132,6 +122,7 @@ public class QRCodeReader : MonoBehaviour {
             }
             System.Threading.Thread.Sleep(200);
         }
+        Debug.Log("DecodeQR thread Exit");
     }
 
     IEnumerator GetUserCredentials(string qrcode) {
