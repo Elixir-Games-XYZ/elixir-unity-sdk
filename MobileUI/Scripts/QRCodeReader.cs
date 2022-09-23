@@ -73,11 +73,20 @@ public class QRCodeReader : MonoBehaviour {
     void FixedUpdate() {
         // Check if webcam is working
         if (camTexture != null && camTexture.isPlaying && camTexture.didUpdateThisFrame && camTexture.width > 16) {
+            Vector3 localScale = new Vector3(1, 1, 1);
+            if (camTexture.videoRotationAngle == 180) {
+                localScale.x *= -1;
+                localScale.y *= -1;
+            }
+            if (camTexture.videoVerticallyMirrored) {
+                localScale.y *= -1;
+            }
+            /*
 #if UNITY_IOS
-        if(camTexture.videoRotationAngle == 0)
-            webcamRT.localScale = new Vector3( 1,-1, 1);
-        else
-            webcamRT.localScale = new Vector3(-1, 1, 1);
+            if(camTexture.videoRotationAngle == 0)
+                webcamRT.localScale = new Vector3( 1,-1, 1);
+            else
+                webcamRT.localScale = new Vector3(-1, 1, 1);
 #else
             if (camTexture.videoRotationAngle == 0)
                 webcamRT.localScale = new Vector3(1, 1, 1);
@@ -85,6 +94,7 @@ public class QRCodeReader : MonoBehaviour {
                 webcamRT.localScale = new Vector3(-1, -1, 1);
             
 #endif
+            */
             lock (qrCode) {
                 lock (qrData) {
                     if (qrCode == "" && qrData.Length==0) {
