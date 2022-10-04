@@ -44,7 +44,7 @@ public class InitSceneController : MonoBehaviour {
         // Hide login button.
         loginButton.SetActive(false);
         // Login using REIKey
-        yield return Elixir.Auth.InitREI(Elixir.ElixirController.Instance.rei);
+        yield return Elixir.Auth.InitREI();
         // If no error on login...
         if (!Elixir.BaseWS.lastError) {
             yield return GetData();

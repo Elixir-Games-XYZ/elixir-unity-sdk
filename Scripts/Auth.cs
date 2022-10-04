@@ -22,17 +22,17 @@ namespace Elixir {
         public static string token { get { return tokenResponse.data.token; }  set { tokenResponse.data.token = value; } }
 
         public ulong serverTimeMS;
-        public static IEnumerator InitREI(string rei, errorCallback OnError = null) {
+        public static IEnumerator InitREI(errorCallback OnError = null) {
 #if UNITY_EDITOR
             // If there is no REI, generate it.
-            if (string.IsNullOrEmpty(rei)) {
+            if (string.IsNullOrEmpty(ElixirController.Instance.rei)) {
                 yield return Elixir.GenerateREI.Do();
-                rei = Elixir.ElixirController.Instance.rei;
+                ElixirController.Instance.rei = Elixir.ElixirController.Instance.rei;
             }
 #endif
             lastError = true;
-            if ( !string.IsNullOrEmpty(rei) )
-                yield return Get($"/auth/{GameID}/reikey/{rei}", tokenResponse);
+            if ( !string.IsNullOrEmpty(ElixirController.Instance.rei) )
+                yield return Get($"/auth/{GameID}/reikey/{ElixirController.Instance.rei}", tokenResponse);
             if (lastError) {
                 OnError?.Invoke(error.code, error.message);
                 UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
