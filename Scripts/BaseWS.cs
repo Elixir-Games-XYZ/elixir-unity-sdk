@@ -78,7 +78,7 @@ namespace Elixir
                     lastError = false;
                 }
             } catch (System.Exception e) {
-                ElixirController.Log($"ERROR: Elixir.Get({uri}) {e.Message}");
+                ElixirController.Log($"ERROR: Elixir.Get({uri}) {e.Message} token {Auth.token}");
                 error.code = -1;
             }
         }
