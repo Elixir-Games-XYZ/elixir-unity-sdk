@@ -36,35 +36,34 @@ namespace Elixir
             PlayerPrefsKey = "Elixir.RefreshToken." + (Instance.isDevelop ? "Dev" : "Prod");
 
 #if UNITY_EDITOR
-            switch (elixirDescriptor.InEditor) {
-                case ElixirDescriptor.Environments.Sanbox:
-                    BaseWS.APIKEY = elixirDescriptor.Sanbox.APIKey;
-                    BaseWS.GameID = elixirDescriptor.Sanbox.GameID;
+            switch (elixirDescriptor.EditorEnv) {
+                case ElixirDescriptor.Environments.Dev:
+                    BaseWS.APIKEY = elixirDescriptor.DevAPIKey;
+                    BaseWS.GameID = elixirDescriptor.GameID;
                     BaseWS.baseURL = "https://sandbox.elixir.app";
                     BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("nIhnQDqV6NYN5bYxhFOh4mpOU43fIj6f"));
                     useconsole = elixirDescriptor.useconsole;
                     break;
-                case ElixirDescriptor.Environments.Production:
-                    BaseWS.APIKEY = elixirDescriptor.Production.APIKey;
-                    BaseWS.GameID = elixirDescriptor.Production.GameID;
+                case ElixirDescriptor.Environments.Prod:
+                    BaseWS.APIKEY = elixirDescriptor.ProdAPIKey;
+                    BaseWS.GameID = elixirDescriptor.GameID;
                     BaseWS.baseURL = "https://kend.elixir.app";
                     BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("kiu84SHMmIKGjDnIWxH7ICySrcDLB06b"));
                     useconsole = elixirDescriptor.useconsole;
                     break;
             }
 #else
-            switch (elixirDescriptor.InBuild) {
-                case ElixirDescriptor.Environments.Sanbox:
-                    BaseWS.APIKEY = elixirDescriptor.Sanbox.APIKey;
-                    BaseWS.GameID = elixirDescriptor.Sanbox.GameID;
+            switch (elixirDescriptor.BuildEnv) {
+                case ElixirDescriptor.Environments.Dev:
+                    BaseWS.APIKEY = elixirDescriptor.DevAPIKey;
+                    BaseWS.GameID = elixirDescriptor.GameID;
                     BaseWS.baseURL = "https://sandbox.elixir.app";
                     BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("nIhnQDqV6NYN5bYxhFOh4mpOU43fIj6f"));
                     useconsole = elixirDescriptor.useconsole;
-
                     break;
-                case ElixirDescriptor.Environments.Production:
-                    BaseWS.APIKEY = elixirDescriptor.Production.APIKey;
-                    BaseWS.GameID = elixirDescriptor.Production.GameID;
+                case ElixirDescriptor.Environments.Prod:
+                    BaseWS.APIKEY = elixirDescriptor.ProdAPIKey;
+                    BaseWS.GameID = elixirDescriptor.GameID;
                     BaseWS.baseURL = "https://kend.elixir.app";
                     BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("kiu84SHMmIKGjDnIWxH7ICySrcDLB06b"));
                     useconsole = elixirDescriptor.useconsole;
