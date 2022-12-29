@@ -24,14 +24,14 @@ namespace Elixir{
             public NTF[] nfts;
         };
         [System.Serializable]
-        class NFTsResponse{
+        public class Data{
             public Collection[] data;
         }
-        static NFTsResponse responseCollections = new NFTsResponse();
+        static Data responseCollections = new Data();
         public static Collection[] collections { get { return responseCollections.data;  } }
         public static IEnumerator Get() {
             if (!string.IsNullOrEmpty(User.userData.wallet))
-                yield return Get($"/nfts/user/{GameID}", responseCollections);
+                yield return Get($"/sdk/v2/nfts/user", responseCollections);
             else {
                 error.code = -2000;
                 error.message = "No wallet";

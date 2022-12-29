@@ -19,7 +19,7 @@ namespace Elixir{
         public static UserData userData {  get { return responseUserData.data; } }
 
         public static IEnumerator Get() {
-            yield return Get($"/userinfo/game/{GameID}", responseUserData);
+            yield return Get($"/sdk/v2/userinfo/", responseUserData);
         }
     }
 }

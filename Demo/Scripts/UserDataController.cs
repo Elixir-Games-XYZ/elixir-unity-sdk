@@ -35,6 +35,7 @@ public class UserDataController : MonoBehaviour
         gameObject.SetActive(false);
     }
     public static IEnumerator LoadImage(string url, RawImage image) {
+        if (string.IsNullOrEmpty(url)) yield break;        
         UnityWebRequest www = UnityWebRequestTexture.GetTexture(url, true);
         yield return www.SendWebRequest();
         DownloadHandlerTexture dht = www.downloadHandler as DownloadHandlerTexture;

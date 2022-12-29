@@ -25,51 +25,8 @@ namespace Elixir
         public delegate void analyticsEvent(string eventName, float value = 0);
         public static analyticsEvent AnalyticsEvent;
         bool isDevelop = false;
-        public string PlayerPrefsKey { get; private set; }
-        public bool PrepareElixir() {
-            var elixirDescriptor = Resources.Load<ElixirDescriptor>("ElixirDescriptor");
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Instance.isDevelop = true;
-#else
-            Instance.isDevelop = false;
-#endif
-            PlayerPrefsKey = "Elixir.RefreshToken." + (Instance.isDevelop ? "Dev" : "Prod");
-
-#if UNITY_EDITOR
-            switch (elixirDescriptor.EditorEnv) {
-                case ElixirDescriptor.Environments.Dev:
-                    BaseWS.APIKEY = elixirDescriptor.DevAPIKey;
-                    BaseWS.GameID = elixirDescriptor.GameID;
-                    BaseWS.baseURL = "https://sandbox.elixir.app";
-                    BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("nIhnQDqV6NYN5bYxhFOh4mpOU43fIj6f"));
-                    useconsole = elixirDescriptor.useconsole;
-                    break;
-                case ElixirDescriptor.Environments.Prod:
-                    BaseWS.APIKEY = elixirDescriptor.ProdAPIKey;
-                    BaseWS.GameID = elixirDescriptor.GameID;
-                    BaseWS.baseURL = "https://kend.elixir.app";
-                    BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("kiu84SHMmIKGjDnIWxH7ICySrcDLB06b"));
-                    useconsole = elixirDescriptor.useconsole;
-                    break;
-            }
-#else
-            switch (elixirDescriptor.BuildEnv) {
-                case ElixirDescriptor.Environments.Dev:
-                    BaseWS.APIKEY = elixirDescriptor.DevAPIKey;
-                    BaseWS.GameID = elixirDescriptor.GameID;
-                    BaseWS.baseURL = "https://sandbox.elixir.app";
-                    BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("nIhnQDqV6NYN5bYxhFOh4mpOU43fIj6f"));
-                    useconsole = elixirDescriptor.useconsole;
-                    break;
-                case ElixirDescriptor.Environments.Prod:
-                    BaseWS.APIKEY = elixirDescriptor.ProdAPIKey;
-                    BaseWS.GameID = elixirDescriptor.GameID;
-                    BaseWS.baseURL = "https://kend.elixir.app";
-                    BaseWS.hmac = new HMACSHA256(Encoding.ASCII.GetBytes("kiu84SHMmIKGjDnIWxH7ICySrcDLB06b"));
-                    useconsole = elixirDescriptor.useconsole;
-                    break;
-            }
-#endif
+        public bool PrepareElixir(string APIKey) {
+            BaseWS.APIKEY = APIKey;
             // Check for REIKey parameter (-rei)
             string[] args = System.Environment.GetCommandLineArgs();
             for (int i = 0; i < args.Length; i++)
