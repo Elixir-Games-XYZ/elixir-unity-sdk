@@ -18,7 +18,7 @@ namespace Elixir
             }
         }
 
-        public static bool useconsole { get; private set; }
+        public static bool useconsole { get; set; }
  
         internal string rei;
 
@@ -48,9 +48,22 @@ namespace Elixir
         }
         string consoleText = "";
         bool showedConsole = false;
+        GUIStyle label;
+        Texture2D background;
         private void OnGUI() {
-            if (showedConsole)
-                GUI.Label(new Rect(0, 0, Screen.width, Screen.height), consoleText);
+            if (showedConsole) {
+                if (label == null) {
+                    background = new Texture2D(1, 1);
+                    background.SetPixel(0, 0, Color.white * 0.85f);
+                    background.Apply();
+
+                    label = new GUIStyle();
+                    label.normal.textColor = Color.black;
+                    label.fontSize = 24;
+                    label.normal.background = background;
+                }
+                GUI.Label(new Rect(0, 0, Screen.width, Screen.height), consoleText, label);
+            }
         }
         public static void Log(string log) {
             if (useconsole) {
