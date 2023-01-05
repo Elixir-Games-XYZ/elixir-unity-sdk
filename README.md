@@ -1,4 +1,4 @@
-# Welcome to Elixir Unity SDK
+# Welcome to Elixir Unity SDK v2
 
 This is the Unity version of [Elixir Games](https://elixir.app/) SDK. With the implmentation of it, your game will be synchronized with the [Elixir Launcher](launcher.elixir.app). 
 
