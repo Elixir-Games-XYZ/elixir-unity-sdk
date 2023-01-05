@@ -10,9 +10,8 @@ namespace Elixir
 {
     public class BaseWS
     {
-        internal static string baseURL;
+        internal static string baseURL = "https://sandbox.elixir.app";
         internal static string APIKEY;
-        internal static string GameID;
 
         public delegate void callback();
         public delegate void errorCallback(int code, string message);
@@ -41,14 +40,10 @@ namespace Elixir
             lastError = true;
             error.success = false;
             error.code = 0;
-            ulong epoch = GetEpoch();
             UnityWebRequest www;
-            string signature;
             if (string.IsNullOrEmpty(body)) {
-                signature = ByteArrayToString(hmac.ComputeHash(Encoding.UTF8.GetBytes($"{epoch}.\"{uri}\"")));
                 www = UnityWebRequest.Get($"{baseURL}{uri}");
             } else {
-                signature = ByteArrayToString(hmac.ComputeHash(Encoding.UTF8.GetBytes($"{epoch}.{body}")));
                 www = UnityWebRequest.Post($"{baseURL}{uri}", body);
                 www.SetRequestHeader("content-type", "application/json");
                 www.uploadHandler = new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(body));
@@ -57,8 +52,6 @@ namespace Elixir
             www.SetRequestHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             www.SetRequestHeader("Expires", "0");
             www.SetRequestHeader("x-api-key", APIKEY);
-            www.SetRequestHeader("x-api-time", epoch.ToString());
-            www.SetRequestHeader("x-api-signature", signature);
             if (!string.IsNullOrEmpty(Auth.token))
                 www.SetRequestHeader("Authorization", "Bearer " + Auth.token);
             yield return www.SendWebRequest();
@@ -82,14 +75,5 @@ namespace Elixir
                 error.code = -1;
             }
         }
-        internal static string ByteArrayToString(byte[] ba) {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
-            foreach (byte b in ba) hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
-        }
-        internal static ulong GetEpoch() {
-            return (ulong)(System.DateTime.UtcNow - new System.DateTime(1970, 1, 1)).TotalSeconds;
-        }
-        internal static HMACSHA256 hmac;
     }
 }

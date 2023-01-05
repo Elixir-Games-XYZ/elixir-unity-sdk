@@ -7,14 +7,14 @@ namespace Elixir {
         [System.Serializable]
         public class TokenResponse {
             [System.Serializable]
-            public class TokenData {
+            public class Data {
                 public string   token;
                 public ulong    tokenExpiry;
                 public ulong    tokenLifeMS;
                 public string   refreshToken;
                 public bool     newAccount;
             }
-            public TokenData data = new TokenData();
+            public Data data = new Data();
         }
 
         static TokenResponse tokenResponse = new TokenResponse();
@@ -32,10 +32,10 @@ namespace Elixir {
 #endif
             lastError = true;
             if ( !string.IsNullOrEmpty(ElixirController.Instance.rei) )
-                yield return Get($"/auth/{GameID}/reikey/{ElixirController.Instance.rei}", tokenResponse);
+                yield return Get($"/sdk/auth/v2/session/reikey/{ElixirController.Instance.rei}", tokenResponse);
             if (lastError) {
                 OnError?.Invoke(error.code, error.message);
-                UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+                UnityEngine.PlayerPrefs.DeleteKey("Elixir.RefreshToken");
                 yield break;
             }
             SaveRefreshToken();
@@ -56,14 +56,14 @@ namespace Elixir {
             }
         }
         static void LoadRefreshToken() {
-            tokenResponse.data.refreshToken = UnityEngine.PlayerPrefs.GetString(ElixirController.Instance.PlayerPrefsKey);
+            tokenResponse.data.refreshToken = UnityEngine.PlayerPrefs.GetString("Elixir.RefreshToken");
         }
         static void SaveRefreshToken() {
             timeToRefreshToken = (tokenResponse.data.tokenLifeMS / 1000) - 5;
-            UnityEngine.PlayerPrefs.SetString(ElixirController.Instance.PlayerPrefsKey, tokenResponse.data.refreshToken);
+            UnityEngine.PlayerPrefs.SetString("Elixir.RefreshToken", tokenResponse.data.refreshToken);
         }
         static void ClearRefreshToken() {
-            UnityEngine.PlayerPrefs.DeleteKey(ElixirController.Instance.PlayerPrefsKey);
+            UnityEngine.PlayerPrefs.DeleteKey("Elixir.RefreshToken");
         }
 #if UNITY_ANDROID || UNITY_IOS
         public static LoginRequestResponse loginRequestResponse = new LoginRequestResponse();
@@ -155,13 +155,9 @@ namespace Elixir {
         }
 #endif
         public static void Close() {
-            var uri = $"/auth/{GameID}/closerei";
-            ulong epoch = BaseWS.GetEpoch();
-            string signature = BaseWS.ByteArrayToString(BaseWS.hmac.ComputeHash(Encoding.ASCII.GetBytes($"{epoch}.\"{uri}\"")));
+            var uri = $"/sdk/auth/v2/session/closerei/{ElixirController.Instance.rei}";
             UnityWebRequest www = UnityWebRequest.Get($"{BaseWS.baseURL}{uri}");
             www.SetRequestHeader("x-api-key", APIKEY);
-            www.SetRequestHeader("x-api-time", epoch.ToString());
-            www.SetRequestHeader("x-api-signature", signature);
             if (!string.IsNullOrEmpty(token)) www.SetRequestHeader("Authorization", "Bearer " + token);
             www.SendWebRequest();
             ElixirController.Log($"Ending session.");
