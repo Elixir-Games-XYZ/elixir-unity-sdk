@@ -10,7 +10,7 @@ namespace Elixir
 {
     public class BaseWS
     {
-        internal static string baseURL = "https://sandbox.elixir.app";
+        internal static string baseURL = "https://kend.elixir.app";
         internal static string APIKEY;
 
         public delegate void callback();
