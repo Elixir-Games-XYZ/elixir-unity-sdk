@@ -4,6 +4,8 @@ This is the Unity version of [Elixir Games](https://elixir.app/) SDK. With the i
 
 Having this sdk integrated will ease the "click and play" for all users launching the Game from Elixir. As we facilitate the user profile, wallets...
 
+See [Elixir Docs](https://docs.elixir.app/).
+
 # Integration Example
 
 You'll find a detailed [Integration Example](https://github.com/Elixir-Games-XYZ/elixir-unity-sdk/blob/master/Demo/Scripts/InitSceneController.cs)
