@@ -30,7 +30,7 @@ namespace Elixir{
         static Data responseCollections = new Data();
         public static Collection[] collections { get { return responseCollections.data;  } }
         public static IEnumerator Get() {
-            if (!string.IsNullOrEmpty(User.userData.wallet))
+            if (User.userData.wallets.Length!=0)
                 yield return Get($"/sdk/v2/nfts/user", responseCollections);
             else {
                 error.code = -2000;
