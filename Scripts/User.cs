@@ -4,12 +4,15 @@ using UnityEngine;
 
 namespace Elixir{
     public class User : BaseWS {
-        [System.Serializable]
+        [System.Serializable]       
         public class UserData {
-            public string elixirId;
-            public string nickname;
-            public string avatar;
-            public string wallet;
+            public string   sub; // ElixirId
+            public string   iss;
+            public string[] wallets;
+            public string   nickname;
+            public string   picture;
+            public string   aud;
+            public string   status;
         }
         [System.Serializable]
         class UserDataResponse {

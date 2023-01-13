@@ -18,7 +18,7 @@ public class UserDataController : MonoBehaviour
     public void Show() {
         nick.text = Elixir.User.userData.nickname;
         gameObject.SetActive(true);
-        StartCoroutine(LoadImage(Elixir.User.userData.avatar, image));
+        StartCoroutine(LoadImage(Elixir.User.userData.picture, image));
 
         if (Elixir.NFTs.collections != null) {
             foreach (var collection in Elixir.NFTs.collections) {

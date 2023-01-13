@@ -74,7 +74,7 @@ public class InitSceneController : MonoBehaviour {
         // Get user data.
         yield return Elixir.User.Get();
         if (!Elixir.BaseWS.lastError) {
-            Elixir.ElixirController.Log($"Logedin user {Elixir.User.userData.nickname}");
+            Elixir.ElixirController.Log($"Logedin user {Elixir.User.userData.nickname} wallets {Elixir.User.userData.wallets.Length}");
         } else {
             Elixir.ElixirController.Log($"Error getting user data");
         }
