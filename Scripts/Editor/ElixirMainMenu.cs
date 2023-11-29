@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
 namespace Elixir.Overlay
 {
@@ -7,7 +8,7 @@ namespace Elixir.Overlay
 		[MenuItem("Elixir/Documentation")]
 		private static void NewMenuOption()
 		{
-			OverlayEditorWindow.ShowWindow();
+			Application.OpenURL("https://docs.elixir.app/");
 		}
 
 		[MenuItem("Elixir/Documentation", true)]
