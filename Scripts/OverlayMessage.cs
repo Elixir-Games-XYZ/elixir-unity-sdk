@@ -8,14 +8,14 @@ namespace Elixir.Overlay
 {
 	public enum MessageType
 	{
-		MTToken = 0,
-		MTOpenStateChange = 1,
-		MTCheckout = 2,
-		MTCheckoutResult = 3,
-		MTElixirPro = 4,
-		MTLanguage = 5,
-		MTSetVisibility = 6,
-		MTEmpty = 7
+		MTEmpty = 0,
+		MTToken = 1,
+		MTOpenStateChange = 2,
+		MTCheckout = 3,
+		MTCheckoutResult = 4,
+		MTFeatureFlags = 5,
+		MTLanguage = 6,
+		MTSetVisibility = 7
 	}
 
 	public interface IMessage
@@ -145,14 +145,33 @@ namespace Elixir.Overlay
 		}
 	}
 
-	[StructLayout(LayoutKind.Sequential)]
-	public struct MElixirPro : IMessage
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+	public struct MFeatureFlags : IMessage, IDisposable
 	{
-		[MarshalAs(UnmanagedType.I1)] public bool Enabled;
+		private IntPtr FeatureFlagsPtr;
 
-		public MElixirPro(bool inEnabled)
+		public MFeatureFlags(string featureFlags)
 		{
-			Enabled = inEnabled;
+			FeatureFlagsPtr = Marshal.StringToHGlobalAnsi(featureFlags);
+		}
+
+		public string FeatureFlags
+		{
+			get => Marshal.PtrToStringAnsi(FeatureFlagsPtr);
+			set
+			{
+				if (FeatureFlagsPtr != IntPtr.Zero) Marshal.FreeHGlobal(FeatureFlagsPtr);
+				FeatureFlagsPtr = Marshal.StringToHGlobalAnsi(value);
+			}
+		}
+
+		public void Dispose()
+		{
+			if (FeatureFlagsPtr != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal(FeatureFlagsPtr);
+				FeatureFlagsPtr = IntPtr.Zero;
+			}
 		}
 	}
 
@@ -196,7 +215,7 @@ namespace Elixir.Overlay
 	{
 		[FieldOffset(4)] public readonly MCheckout checkout;
 		[FieldOffset(4)] public readonly MCheckoutResult checkoutResult;
-		[FieldOffset(4)] public readonly MElixirPro elixirPro;
+		[FieldOffset(4)] public readonly MFeatureFlags featureFlags;
 		[FieldOffset(4)] public readonly MEmpty empty;
 		[FieldOffset(4)] public readonly MLanguage language;
 		[FieldOffset(4)] public readonly MOpenStateChange openStateChange;
@@ -227,10 +246,10 @@ namespace Elixir.Overlay
 			this.checkoutResult = checkoutResult;
 		}
 
-		public MessageUnion(MElixirPro elixirPro) : this()
+		public MessageUnion(MFeatureFlags featureFlags) : this()
 		{
-			type = MessageType.MTElixirPro;
-			this.elixirPro = elixirPro;
+			type = MessageType.MTFeatureFlags;
+			this.featureFlags = featureFlags;
 		}
 
 		public MessageUnion(MLanguage language) : this()
@@ -319,7 +338,7 @@ namespace Elixir.Overlay
 				MessageType.MTOpenStateChange => union.openStateChange,
 				MessageType.MTCheckout => union.checkout,
 				MessageType.MTCheckoutResult => union.checkoutResult,
-				MessageType.MTElixirPro => union.elixirPro,
+				MessageType.MTFeatureFlags => union.featureFlags,
 				MessageType.MTLanguage => union.language,
 				MessageType.MTEmpty => union.empty,
 				_ => null
