@@ -428,7 +428,7 @@ namespace Elixir.Overlay
 				}
 				catch (Exception e)
 				{
-					Console.WriteLine(e);
+					Console.WriteLine(e.ToString());
 					throw;
 				}
 			});
