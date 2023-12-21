@@ -1,0 +1,10 @@
+﻿{
+  "name": "ElixirEditor",
+  "includePlatforms": [
+    "Editor"
+  ],
+  "references": [
+    "Elixir"
+  ],
+  "autoReferenced": true
+}
