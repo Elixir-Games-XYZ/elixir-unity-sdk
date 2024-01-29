@@ -1,42 +1,46 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.Threading.Tasks;
 
-namespace Elixir{
-    public class NFTs : BaseWS {
-        [System.Serializable]
-        public class Collection {
-            public string collection;
-            public string collectionName;
-            [System.Serializable]
-            public class NTF {
-                public string tokenId;
-                public string name;
-                public string image;
+namespace Elixir
+{
+	public class Nfts : BaseWebService
+	{
+		public static Collection[] Collections { get; }
 
-                [System.Serializable]
-                public class Attribute {
-                    public string trait_type;
-                    public string value;
-                }
-                public Attribute[] attributes;
-            };
-            public NTF[] nfts;
-        };
-        [System.Serializable]
-        public class Data{
-            public Collection[] data;
-        }
-        static Data responseCollections = new Data();
-        public static Collection[] collections { get { return responseCollections.data;  } }
-        public static IEnumerator Get() {
-            if (User.userData.wallets.Length!=0)
-                yield return Get($"/sdk/v2/nfts/user", responseCollections);
-            else {
-                error.code = -2000;
-                error.message = "No wallet";
-                lastError = true;
-            }
-        }
-    }
+		public static async Task<Collection[]> GetUserNfts()
+		{
+			var response = await GetAsync<NftsResponse>("/sdk/v2/nfts/user");
+			return response.data;
+		}
+
+		[Serializable]
+		public class Collection
+		{
+			public string collection;
+			public string collectionName;
+			public Nft[] nfts;
+
+			[Serializable]
+			public class Nft
+			{
+				public string tokenId;
+				public string name;
+				public string image;
+				public Attribute[] attributes;
+
+				[Serializable]
+				public class Attribute
+				{
+					public string trait_type;
+					public string value;
+				}
+			}
+		}
+
+		[Serializable]
+		private class NftsResponse : ElixirResponse
+		{
+			public Collection[] data;
+		}
+	}
 }

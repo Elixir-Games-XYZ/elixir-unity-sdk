@@ -16,3 +16,4 @@ public class NFTItemController : MonoBehaviour
         StartCoroutine(UserDataController.LoadImage(url, image));
     }
 }
+ 

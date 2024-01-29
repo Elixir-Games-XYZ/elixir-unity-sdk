@@ -1,28 +1,34 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.Threading.Tasks;
 
-namespace Elixir{
-    public class User : BaseWS {
-        [System.Serializable]       
-        public class UserData {
-            public string   sub; // ElixirId
-            public string   iss;
-            public string[] wallets;
-            public string   nickname;
-            public string   picture;
-            public string   aud;
-            public string   status;
-        }
-        [System.Serializable]
-        class UserDataResponse {
-            public UserData data;
-        }
-        static UserDataResponse responseUserData = new UserDataResponse();
-        public static UserData userData {  get { return responseUserData.data; } }
+namespace Elixir
+{
+	public class User : BaseWebService
+	{
+		private UserInfoResponseData _userInfo;
 
-        public static IEnumerator Get() {
-            yield return Get($"/sdk/v2/userinfo/", responseUserData);
-        }
-    }
+		public static async Task<UserInfoResponseData> GetUserInfo()
+		{
+			var response = await GetAsync<UserInfoResponse>("/sdk/v2/userinfo");
+			return response.data;
+		}
+
+		[Serializable]
+		public class UserInfoResponseData
+		{
+			public string sub; // ElixirId
+			public string iss;
+			public string[] wallets;
+			public string nickname;
+			public string picture;
+			public string aud;
+			public string status;
+		}
+
+		[Serializable]
+		private class UserInfoResponse : ElixirResponse
+		{
+			public UserInfoResponseData data;
+		}
+	}
 }

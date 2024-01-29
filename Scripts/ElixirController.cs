@@ -1,76 +1,92 @@
-using System.Security.Cryptography;
-using System.Text;
+using System;
 using UnityEngine;
 
 namespace Elixir
 {
-    public class ElixirController : MonoBehaviour
-    {
-        static ElixirController _Instance;
-        public static ElixirController Instance {
-            get {
-                if (_Instance == null) {
-                    var gameObject = new GameObject("ElixirController");
-                    _Instance = gameObject.AddComponent<ElixirController>();
-                    DontDestroyOnLoad(gameObject);
-                }
-                return _Instance;
-            }
-        }
+	public class ElixirController : MonoBehaviour
+	{
+		private static ElixirController _instance;
+		private Texture2D _background;
+		private string _consoleText = "";
+		private bool _isConsoleOpen;
+		private GUIStyle _label;
 
-        public static bool useconsole { get; set; }
- 
-        internal string rei;
+		internal string Rei { get; set; }
 
-        public delegate void analyticsEvent(string eventName, float value = 0);
-        public static analyticsEvent AnalyticsEvent;
-        bool isDevelop = false;
-        public bool PrepareElixir(string APIKey) {
-            BaseWS.APIKEY = APIKey;
-            // Check for REIKey parameter (-rei)
-            string[] args = System.Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++)
-                if (args[i] == "-rei")
-                    Instance.rei = args[i + 1];
-            return true;
-        }
+		public static ElixirController Instance
+		{
+			get
+			{
+				if (_instance == null)
+				{
+					var gameObject = new GameObject("ElixirController");
+					_instance = gameObject.AddComponent<ElixirController>();
+					DontDestroyOnLoad(gameObject);
+				}
 
-        void Update() {
-            Auth.CheckToken(Time.deltaTime);
+				return _instance;
+			}
+		}
+
+		public static bool UseConsole { get; set; }
+
+		private void Update()
+		{
+			Auth.CheckToken(Time.deltaTime);
 #if !ENABLE_INPUT_SYSTEM
-            if (useconsole && Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Escape))
-                showedConsole = !showedConsole;
+			if (UseConsole && Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Escape))
+				_isConsoleOpen = !_isConsoleOpen;
 #endif
-        }
+		}
 
-        void OnDestroy() {
-            Auth.Close();
-        }
-        string consoleText = "";
-        bool showedConsole = false;
-        GUIStyle label;
-        Texture2D background;
-        private void OnGUI() {
-            if (showedConsole) {
-                if (label == null) {
-                    background = new Texture2D(1, 1);
-                    background.SetPixel(0, 0, Color.white * 0.85f);
-                    background.Apply();
+		private void OnDestroy()
+		{
+			Auth.CloseRei();
+		}
 
-                    label = new GUIStyle();
-                    label.normal.textColor = Color.black;
-                    label.fontSize = 24;
-                    label.normal.background = background;
-                }
-                GUI.Label(new Rect(0, 0, Screen.width, Screen.height), consoleText, label);
-            }
-        }
-        public static void Log(string log) {
-            if (useconsole) {
-                Debug.Log($"<color=#a0a000>[Elixir] {log}</color>");
-                Instance.consoleText += log + "\n";
-            }
+		private void OnGUI()
+		{
+			if (_isConsoleOpen)
+			{
+				if (_label == null)
+				{
+					_background = new Texture2D(1, 1);
+					_background.SetPixel(0, 0, Color.white * 0.85f);
+					_background.Apply();
 
-        }
-    }
+					_label = new GUIStyle();
+					_label.normal.textColor = Color.black;
+					_label.fontSize = 24;
+					_label.normal.background = _background;
+				}
+
+				GUI.Label(new Rect(0, 0, Screen.width, Screen.height), _consoleText, _label);
+			}
+		}
+
+		public bool PrepareElixir(string apiKey)
+		{
+			BaseWebService.apiKey = apiKey;
+			InitReiProgramArgument();
+			return true;
+		}
+
+		// the rei argument comes from the Elixir Launcher on desktop platforms
+		private void InitReiProgramArgument()
+		{
+			var args = Environment.GetCommandLineArgs();
+			for (var i = 0; i < args.Length; i++)
+				if (args[i] == "-rei")
+					Instance.Rei = args[i + 1];
+		}
+
+		public static void Log(string log)
+		{
+			if (UseConsole)
+			{
+				Debug.Log($"<color=#a0a000>[Elixir] {log}</color>");
+				Instance._consoleText += log + "\n";
+			}
+		}
+	}
 }
