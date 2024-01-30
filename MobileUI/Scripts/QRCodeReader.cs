@@ -1,5 +1,12 @@
+using System;
+using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
+using Elixir;
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.UI;
+using ZXing;
 #if UNITY_ANDROID
 #endif
 
@@ -16,7 +23,7 @@ public class QRCodeReader : MonoBehaviour
 	{
 		webcamRT = webcam.GetComponent<RectTransform>();
 	}
-
+	
 	private IEnumerator Start()
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR

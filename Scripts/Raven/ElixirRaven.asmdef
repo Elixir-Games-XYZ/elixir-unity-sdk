@@ -1,0 +1,16 @@
+﻿{
+  "name": "ElixirRaven",
+  "includePlatforms": [
+    "Editor",
+    "macOSStandalone",
+    "WindowsStandalone64",
+    "WindowsStandalone32",
+    "LinuxStandalone32",
+    "LinuxStandalone64",
+    "LinuxStandaloneUniversal"
+  ],
+  "references": [
+    "Elixir"
+  ],
+  "autoReferenced": true
+}
