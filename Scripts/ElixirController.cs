@@ -1,7 +1,9 @@
 using System;
-using Elixir.Overlay;
 using UnityEngine;
+#if !UNITY_ANDROID && !UNITY_IOS
+using Elixir.Overlay;
 using Event = Elixir.Overlay.Event;
+#endif
 
 namespace Elixir
 {
@@ -39,11 +41,17 @@ namespace Elixir
 			if (UseConsole && Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Escape))
 				_isConsoleOpen = !_isConsoleOpen;
 #endif
+#if !UNITY_ANDROID && !UNITY_IOS
+			OverlayMessage.Update();
+#endif
 		}
 
 		private void OnDestroy()
 		{
+			// This is intentional, let's not raise warnings for builds
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			Auth.CloseRei();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private void OnGUI()

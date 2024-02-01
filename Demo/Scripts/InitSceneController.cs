@@ -19,7 +19,7 @@ public class InitSceneController : MonoBehaviour
 
 	private async Task InitialSetup()
 	{
-    Elixir.ElixirController.UseConsole = true;
+		ElixirController.UseConsole = true;
 		ElixirController.Log("Preparing Elixir...");
 		try
 		{
@@ -59,7 +59,7 @@ public class InitSceneController : MonoBehaviour
 		logoutButton.SetActive(false);
 		loginButton.SetActive(true);
 		UserDataController.Instance.Hide();
-		await Auth.Logout();
+		Auth.Logout();
 	}
 
 #else

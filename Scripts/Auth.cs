@@ -229,8 +229,9 @@ namespace Elixir
 			}
 		}
 
-		public static async Task Logout()
+		public static void Logout()
 		{
+			// We are very intentionally not waiting for logout to complete here
 			if (!string.IsNullOrEmpty(Token)) PostAsync<LogoutResponse>("/sdk/auth/v2/session/signout", null);
 			Token = null;
 			ClearRefreshToken();
