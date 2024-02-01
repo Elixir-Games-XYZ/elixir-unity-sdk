@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+[assembly: InternalsVisibleTo("Elixir")]
+[assembly: InternalsVisibleTo("ElixirEditor")]
+
 namespace Elixir.Overlay
 {
-	public enum MessageType
+	internal enum MessageType
 	{
 		MTEmpty = 0,
 		MTToken = 1,
@@ -18,41 +22,41 @@ namespace Elixir.Overlay
 		MTSetVisibility = 7
 	}
 
-	public interface IMessage
+	internal interface IMessage
 	{
 	}
 
-	public class MainThreadQueue
+	internal class MainThreadQueue
 	{
 		// anything on this queue will be executed on the main thread in Update()
-		private static readonly Queue<Action> _executionQueue = new Queue<Action>();
+		private static readonly Queue<Action> ExecutionQueue = new Queue<Action>();
 
-		public void Enqueue(Action action)
+		internal void Enqueue(Action action)
 		{
-			_executionQueue.Enqueue(action);
+			ExecutionQueue.Enqueue(action);
 		}
 
-		public void Update()
+		internal void Update()
 		{
-			lock (_executionQueue)
+			lock (ExecutionQueue)
 			{
-				while (_executionQueue.Count > 0) _executionQueue.Dequeue().Invoke();
+				while (ExecutionQueue.Count > 0) ExecutionQueue.Dequeue().Invoke();
 			}
 		}
 	}
 
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-	public struct MToken : IMessage, IDisposable
+	internal struct MToken : IMessage, IDisposable
 	{
 		private IntPtr TokenPtr;
 
-		public MToken(string token)
+		internal MToken(string token)
 		{
 			TokenPtr = Marshal.StringToHGlobalAnsi(token);
 		}
 
-		public string Token
+		internal string Token
 		{
 			get => Marshal.PtrToStringAnsi(TokenPtr);
 			set
@@ -73,27 +77,27 @@ namespace Elixir.Overlay
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public struct MOpenStateChange : IMessage
+	internal struct MOpenStateChange : IMessage
 	{
-		[MarshalAs(UnmanagedType.I1)] public bool IsOpen;
+		[MarshalAs(UnmanagedType.I1)] internal bool IsOpen;
 
-		public MOpenStateChange(bool inIsOpen)
+		internal MOpenStateChange(bool inIsOpen)
 		{
 			IsOpen = inIsOpen;
 		}
 	}
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-	public struct MCheckout : IMessage, IDisposable
+	internal struct MCheckout : IMessage, IDisposable
 	{
 		private IntPtr SkuPtr;
 
-		public MCheckout(string inSku)
+		internal MCheckout(string inSku)
 		{
 			SkuPtr = Marshal.StringToHGlobalAnsi(inSku);
 		}
 
-		public string Sku
+		internal string Sku
 		{
 			get => Marshal.PtrToStringAnsi(SkuPtr);
 			set
@@ -114,18 +118,18 @@ namespace Elixir.Overlay
 	}
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-	public struct MCheckoutResult : IMessage, IDisposable
+	internal struct MCheckoutResult : IMessage, IDisposable
 	{
-		[MarshalAs(UnmanagedType.I1)] public bool Success;
+		[MarshalAs(UnmanagedType.I1)] internal bool Success;
 		private IntPtr SkuPtr;
 
-		public MCheckoutResult(bool inSuccess, string inSku)
+		internal MCheckoutResult(bool inSuccess, string inSku)
 		{
 			Success = inSuccess;
 			SkuPtr = Marshal.StringToHGlobalAnsi(inSku);
 		}
 
-		public string Sku
+		internal string Sku
 		{
 			get => Marshal.PtrToStringAnsi(SkuPtr);
 			set
@@ -146,16 +150,16 @@ namespace Elixir.Overlay
 	}
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-	public struct MFeatureFlags : IMessage, IDisposable
+	internal struct MFeatureFlags : IMessage, IDisposable
 	{
 		private IntPtr FeatureFlagsPtr;
 
-		public MFeatureFlags(string featureFlags)
+		internal MFeatureFlags(string featureFlags)
 		{
 			FeatureFlagsPtr = Marshal.StringToHGlobalAnsi(featureFlags);
 		}
 
-		public string FeatureFlags
+		internal string FeatureFlags
 		{
 			get => Marshal.PtrToStringAnsi(FeatureFlagsPtr);
 			set
@@ -176,16 +180,16 @@ namespace Elixir.Overlay
 	}
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-	public struct MLanguage : IMessage, IDisposable
+	internal struct MLanguage : IMessage, IDisposable
 	{
 		private IntPtr LanguagePtr;
 
-		public MLanguage(string language)
+		internal MLanguage(string language)
 		{
 			LanguagePtr = Marshal.StringToHGlobalAnsi(language);
 		}
 
-		public string Language
+		internal string Language
 		{
 			get => Marshal.PtrToStringAnsi(LanguagePtr);
 			set
@@ -206,69 +210,67 @@ namespace Elixir.Overlay
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public struct MEmpty : IMessage
+	internal struct MEmpty : IMessage
 	{
 	}
 
 	[StructLayout(LayoutKind.Explicit)]
-	public struct MessageUnion
+	internal struct MessageUnion
 	{
-		[FieldOffset(4)] public readonly MCheckout checkout;
-		[FieldOffset(4)] public readonly MCheckoutResult checkoutResult;
-		[FieldOffset(4)] public readonly MFeatureFlags featureFlags;
-		[FieldOffset(4)] public readonly MEmpty empty;
-		[FieldOffset(4)] public readonly MLanguage language;
-		[FieldOffset(4)] public readonly MOpenStateChange openStateChange;
-		[FieldOffset(4)] public readonly MToken token;
-		[FieldOffset(0)] public readonly MessageType type;
+		[FieldOffset(4)] internal readonly MCheckout checkout;
+		[FieldOffset(4)] internal readonly MCheckoutResult checkoutResult;
+		[FieldOffset(4)] internal readonly MFeatureFlags featureFlags;
+		[FieldOffset(4)] internal readonly MEmpty empty;
+		[FieldOffset(4)] internal readonly MLanguage language;
+		[FieldOffset(4)] internal readonly MOpenStateChange openStateChange;
+		[FieldOffset(4)] internal readonly MToken token;
+		[FieldOffset(0)] internal readonly MessageType type;
 
-		public MessageUnion(MToken token) : this()
+		internal MessageUnion(MToken token) : this()
 		{
 			type = MessageType.MTToken;
 			this.token = token;
 		}
 
-		public MessageUnion(MOpenStateChange openStateChange) : this()
+		internal MessageUnion(MOpenStateChange openStateChange) : this()
 		{
 			type = MessageType.MTOpenStateChange;
 			this.openStateChange = openStateChange;
 		}
 
-		public MessageUnion(MCheckout checkout) : this()
+		internal MessageUnion(MCheckout checkout) : this()
 		{
 			type = MessageType.MTCheckout;
 			this.checkout = checkout;
 		}
 
-		public MessageUnion(MCheckoutResult checkoutResult) : this()
+		internal MessageUnion(MCheckoutResult checkoutResult) : this()
 		{
 			type = MessageType.MTCheckoutResult;
 			this.checkoutResult = checkoutResult;
 		}
 
-		public MessageUnion(MFeatureFlags featureFlags) : this()
+		internal MessageUnion(MFeatureFlags featureFlags) : this()
 		{
 			type = MessageType.MTFeatureFlags;
 			this.featureFlags = featureFlags;
 		}
 
-		public MessageUnion(MLanguage language) : this()
+		internal MessageUnion(MLanguage language) : this()
 		{
 			type = MessageType.MTLanguage;
 			this.language = language;
 		}
 
-		public MessageUnion(MEmpty empty) : this()
+		internal MessageUnion(MEmpty empty) : this()
 		{
 			type = MessageType.MTEmpty;
 			this.empty = empty;
 		}
 	}
 
-	public static class OverlayMessage
+	internal static class OverlayMessage
 	{
-		public delegate void MessageCallback(IMessage message);
-
 		private const string DllName = "raven_shared.dll";
 
 		private static string _eventBufferGameSdkId;
@@ -278,7 +280,7 @@ namespace Elixir.Overlay
 		private static CancellationTokenSource _gameCancellationTokenSource;
 		private static CancellationTokenSource _simulatorCancellationTokenSource;
 		private static MainThreadQueue _mainThreadQueue;
-		public static bool _Dangerous_IsSimulating { get; private set; }
+		internal static bool IsSimulating { get; private set; }
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
 		private static extern IntPtr CreateEventBuffer(string bufferName);
@@ -378,31 +380,38 @@ namespace Elixir.Overlay
 			throw new ExternalException(error);
 		}
 
-		public static void Init(MessageCallback callback)
+		private static void EnsureInitEventBufferEventGameSdk()
+		{
+			if (_eventBufferGameSdk == IntPtr.Zero)
+			{
+				_eventBufferGameSdkId = GetEventBufferGameSdkManaged();
+				_eventBufferGameSdk = CreateEventBuffer(_eventBufferGameSdkId);
+			}
+
+			ClearEventBuffer(_eventBufferGameSdk);
+
+			var error = GetEventBufferError(_eventBufferGameSdk);
+			if (string.IsNullOrEmpty(error)) return;
+			ClearEventBufferError(_eventBufferGameSdk);
+			throw new ExternalException(error);
+		}
+
+
+		internal static void Init(MessageCallback callback)
 		{
 			if (callback == null) throw new Exception("Missing callback");
 			if (_eventBufferGameSdk != IntPtr.Zero)
 				throw new Exception("Already initialized");
 
-			_eventBufferGameSdkId = GetEventBufferGameSdkManaged();
-			_eventBufferGameSdk = CreateEventBuffer(_eventBufferGameSdkId);
-			ClearEventBuffer(_eventBufferGameSdk);
-
-			var error = GetEventBufferError(_eventBufferGameSdk);
-			if (!string.IsNullOrEmpty(error))
-			{
-				ClearEventBufferError(_eventBufferGameSdk);
-				throw new ExternalException(error);
-			}
-
 			EnsureInitMainThreadQueue();
+			EnsureInitEventBufferEventGameSdk();
 			EnsureInitEventBufferEventOverlay();
 
 			_gameCancellationTokenSource = new CancellationTokenSource();
 			Task.Run(() => Listen(_gameCancellationTokenSource, _eventBufferGameSdk, callback));
 		}
 
-		public static void StopListening()
+		internal static void StopListening()
 		{
 			_gameCancellationTokenSource.Cancel();
 			_mainThreadQueue = null;
@@ -412,13 +421,15 @@ namespace Elixir.Overlay
 			_eventBufferOverlayUi = IntPtr.Zero;
 		}
 
-		public static void _Dangerous_StartSimulating(MessageCallback callback)
+		internal static void Simulator_StartSimulating(MessageCallback callback)
 		{
-			if (_Dangerous_IsSimulating) throw new Exception("Already simulating");
+			if (IsSimulating) throw new Exception("Already simulating");
 			EnsureInitMainThreadQueue();
+			EnsureInitEventBufferEventGameSdk();
 			EnsureInitEventBufferEventOverlay();
+
 			_simulatorCancellationTokenSource = new CancellationTokenSource();
-			_Dangerous_IsSimulating = true;
+			IsSimulating = true;
 
 			Task.Run(() =>
 			{
@@ -434,35 +445,37 @@ namespace Elixir.Overlay
 			});
 		}
 
-		public static void _Dangerous_StopSimulating()
+		internal static void Simulator_StopSimulating()
 		{
 			_simulatorCancellationTokenSource?.Cancel();
-			_Dangerous_IsSimulating = false;
+			IsSimulating = false;
 		}
 
-		public static void Update()
+		internal static void Update()
 		{
 			if (_mainThreadQueue != null) _mainThreadQueue.Update();
 		}
 
-		public static bool Checkout(string sku)
+		internal static bool Checkout(string sku)
 		{
 			if (sku.Length == 0) throw new Exception("Invalid empty Sku");
 			var bytesWritten = WriteToEventBufferCheckout(_eventBufferOverlayUi, sku);
 			return bytesWritten > 0;
 		}
 
-		public static bool _Dangerous_CheckoutResult(bool result, string sku)
+		internal static bool Simulator_CheckoutResult(bool result, string sku)
 		{
 			if (sku.Length == 0) throw new Exception("Invalid empty Sku");
 			var bytesWritten = WriteToEventBufferCheckoutResult(_eventBufferGameSdk, result, sku);
 			return bytesWritten > 0;
 		}
 
-		public static bool _Dangerous_OpenStateChange(bool openState)
+		internal static bool Simulator_OpenStateChange(bool openState)
 		{
 			var bytesWritten = WriteToEventBufferOpenStateChange(_eventBufferGameSdk, openState);
 			return bytesWritten > 0;
 		}
+
+		internal delegate void MessageCallback(IMessage message);
 	}
 }

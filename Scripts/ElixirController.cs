@@ -1,5 +1,7 @@
 using System;
+using Elixir.Overlay;
 using UnityEngine;
+using Event = Elixir.Overlay.Event;
 
 namespace Elixir
 {
@@ -68,6 +70,9 @@ namespace Elixir
 		{
 			BaseWebService.apiKey = apiKey;
 			InitReiProgramArgument();
+#if !UNITY_ANDROID && !UNITY_IOS
+			OverlayMessage.Init(ProcessMessage);
+#endif
 			return true;
 		}
 
@@ -88,5 +93,31 @@ namespace Elixir
 				Instance._consoleText += log + "\n";
 			}
 		}
+
+#if !UNITY_ANDROID && !UNITY_IOS
+		private void ProcessMessage(IMessage message)
+		{
+			Log("Event received");
+			switch (message)
+			{
+				case MOpenStateChange openStateChange:
+					Log($"MOpenStateChange: {openStateChange.IsOpen}");
+					Event.OnOpenStateChange(openStateChange.IsOpen);
+					break;
+				case MCheckoutResult checkoutResult:
+					Log($"MCheckoutResult: {checkoutResult.Success}, {checkoutResult.Sku}");
+					Event.OnCheckoutResult(checkoutResult.Success, checkoutResult.Sku);
+					break;
+				default:
+					Log("Event not processed");
+					break;
+			}
+		}
+
+		public void OnApplicationQuit()
+		{
+			OverlayMessage.StopListening();
+		}
+#endif
 	}
 }

@@ -9,8 +9,6 @@
     "LinuxStandalone64",
     "LinuxStandaloneUniversal"
   ],
-  "references": [
-    "Elixir"
-  ],
+  "references": [],
   "autoReferenced": true
 }

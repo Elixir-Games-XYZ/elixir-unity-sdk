@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -55,15 +54,15 @@ namespace Elixir.Overlay
 
 			using (new EditorGUI.DisabledGroupScope(!EditorApplication.isPlaying))
 			{
-				var buttonText = OverlayMessage._Dangerous_IsSimulating ? "Stop" : "Simulate";
-				var buttonIcon = OverlayMessage._Dangerous_IsSimulating ? "d_PauseButton" : "d_PlayButton";
+				var buttonText = OverlayMessage.IsSimulating ? "Stop" : "Simulate";
+				var buttonIcon = OverlayMessage.IsSimulating ? "d_PauseButton" : "d_PlayButton";
 				if (GUILayout.Button(new GUIContent(buttonText, EditorGUIUtility.IconContent(buttonIcon).image),
 					    GUILayout.Width(100)))
 				{
-					if (OverlayMessage._Dangerous_IsSimulating)
-						OverlayMessage._Dangerous_StopSimulating();
+					if (OverlayMessage.IsSimulating)
+						OverlayMessage.Simulator_StopSimulating();
 					else
-						OverlayMessage._Dangerous_StartSimulating(ProcessMessage);
+						OverlayMessage.Simulator_StartSimulating(ProcessMessage);
 				}
 			}
 
@@ -75,7 +74,7 @@ namespace Elixir.Overlay
 
 			GUILayout.FlexibleSpace();
 
-			GUILayout.Label(OverlayMessage._Dangerous_IsSimulating ? "Simulating" : "Stopped");
+			GUILayout.Label(OverlayMessage.IsSimulating ? "Simulating" : "Stopped");
 
 			EditorGUILayout.EndHorizontal();
 
@@ -109,7 +108,7 @@ namespace Elixir.Overlay
 			foreach (var param in _currentParameters)
 				param.DrawUI();
 
-			using (new EditorGUI.DisabledGroupScope(!EditorApplication.isPlaying || !OverlayMessage._Dangerous_IsSimulating))
+			using (new EditorGUI.DisabledGroupScope(!EditorApplication.isPlaying || !OverlayMessage.IsSimulating))
 			{
 				if (GUILayout.Button("Send")) SendMessage();
 			}
@@ -126,14 +125,14 @@ namespace Elixir.Overlay
 					var successParam = _currentParameters.Find(item => item.GetLabel() == "Success");
 					var skuParam = _currentParameters.Find(item => item.GetLabel() == "Sku");
 					if (successParam is BooleanParameter successParamSpecific && skuParam is StringParameter skuParamSpecific)
-						OverlayMessage._Dangerous_CheckoutResult(successParamSpecific.GetValue(), skuParamSpecific.GetValue());
+						OverlayMessage.Simulator_CheckoutResult(successParamSpecific.GetValue(), skuParamSpecific.GetValue());
 					else
 						throw new Exception("Invalid parameters");
 					break;
 				case MessageType.MTOpenStateChange:
 					var openStateParam = _currentParameters.Find(item => item.GetLabel() == "IsOpen");
 					if (openStateParam is BooleanParameter openStateParamSpecific)
-						OverlayMessage._Dangerous_OpenStateChange(openStateParamSpecific.GetValue());
+						OverlayMessage.Simulator_OpenStateChange(openStateParamSpecific.GetValue());
 					else
 						throw new Exception("Invalid parameters");
 					break;
@@ -144,7 +143,7 @@ namespace Elixir.Overlay
 
 		private void OnPlayModeStateChanged(PlayModeStateChange state)
 		{
-			if (state == PlayModeStateChange.ExitingPlayMode) OverlayMessage._Dangerous_StopSimulating();
+			if (state == PlayModeStateChange.ExitingPlayMode) OverlayMessage.Simulator_StopSimulating();
 		}
 
 		private MessageType GetMessageTypeFromOption(string option)
