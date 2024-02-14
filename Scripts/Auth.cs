@@ -65,9 +65,9 @@ namespace Elixir
 			PlayerPrefs.DeleteKey("Elixir.RefreshToken");
 		}
 
-		public static async Task<CloseReiResponseData> CloseRei()
+		public static async Task<CloseReiResponseData> CloseRei(string rei)
 		{
-			var response = await PostAsync<CloseReiResponse>($"/sdk/auth/v2/session/closerei/{ElixirController.Instance.Rei}",
+			var response = await PostAsync<CloseReiResponse>($"/sdk/auth/v2/session/closerei/{rei}",
 				new CloseReiRequestBody { refreshToken = RefreshToken });
 			ElixirController.Log("Ending session.");
 			return response.data;

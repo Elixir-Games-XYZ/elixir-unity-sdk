@@ -71,7 +71,7 @@ public class InitSceneController : MonoBehaviour
 
 	private async Task InitialSetup()
 	{
-		ElixirController.UseConsole = true;
+		ElixirController.DebugLog = true;
 		try
 		{
 			logoutButton.SetActive(false);
