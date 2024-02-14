@@ -347,7 +347,9 @@ namespace Elixir.Overlay
 			};
 		}
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 		private static async Task Listen(CancellationTokenSource cancellationTokenSource, IntPtr eventBuffer,
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 			MessageCallback callback)
 		{
 			while (!cancellationTokenSource.Token.IsCancellationRequested)

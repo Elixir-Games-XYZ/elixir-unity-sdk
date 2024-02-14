@@ -14,6 +14,9 @@ namespace Elixir
 		private string _consoleText = "";
 		private bool _isConsoleOpen;
 		private GUIStyle _label;
+#if !UNITY_EDITOR
+		private static bool _readyToQuit;
+#endif
 
 		internal string Rei { get; set; }
 
@@ -46,13 +49,41 @@ namespace Elixir
 #endif
 		}
 
-		private void OnDestroy()
+		[RuntimeInitializeOnLoadMethod]
+		private static void RunOnStart()
 		{
-			// This is intentional, let's not raise warnings for builds
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			Auth.CloseRei();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			Application.wantsToQuit += WantsToQuit;
 		}
+
+		private static bool WantsToQuit()
+		{
+#if UNITY_EDITOR
+			Auth.CloseRei();
+			return true;
+#else
+			CloseReiAndQuit();
+			return _readyToQuit;
+#endif
+		}
+
+#if !UNITY_EDITOR
+		private static async void CloseReiAndQuit()
+		{
+			try
+			{
+				await Auth.CloseRei();
+			}
+			catch (Exception)
+			{
+				Log("CloseRei failed");
+			}
+			finally
+			{
+				_readyToQuit = true;
+				Application.Quit();
+			}
+		}
+#endif
 
 		private void OnGUI()
 		{
