@@ -273,6 +273,8 @@ namespace Elixir.Overlay
     {
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
         private const string DllName = "libraven_shared.1.0.0.dylib";
+#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+        private const string DllName = "libraven_shared.so.1.0.0";
 #else
 		private const string DllName = "raven_shared.dll";
 #endif
