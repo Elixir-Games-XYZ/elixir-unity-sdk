@@ -10,11 +10,23 @@ namespace Elixir.Overlay
 	{
 		private readonly List<IEventParameter> _currentParameters = new List<IEventParameter>();
 		private readonly List<Message> _messages = new List<Message>();
-		private readonly string[] _options = { "MTCheckoutResult", "MTOpenStateChange" };
+
+		private readonly string[] _options =
+		{
+			"MTCheckoutResult", "MTOpenStateChange", "MTMKGetWalletResult", "MTMKSignTypedDataResult",
+			"MTMKSignMessageResult", "MTMKSignTransactionResult"
+		};
+
+		private readonly string[] _responseTypeOptions =
+		{
+			"MKResponseEVM", "MKResponseSolana", "MKResponseEOS"
+		};
+
 		private MessageTreeView _messageTreeView;
 		private MultiColumnHeaderState _multiColumnHeaderState;
 		private Vector2 _scrollPosition;
 		private MessageType _selectedMessageType;
+		private MKResponseType _selectedResponseType;
 		private TreeViewState _treeViewState;
 
 		public void Update()
@@ -27,6 +39,7 @@ namespace Elixir.Overlay
 		{
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 			_selectedMessageType = MessageType.MTCheckoutResult;
+			_selectedResponseType = MKResponseType.MKResponseEVM;
 			UpdateParameterControls();
 			_treeViewState = new TreeViewState();
 			var headerState = MessageTreeView.CreateDefaultMultiColumnHeaderState();
@@ -95,7 +108,6 @@ namespace Elixir.Overlay
 
 			EditorGUILayout.BeginVertical(bottomPaddingStyle);
 
-
 			var newSelectedIndex =
 				EditorGUILayout.Popup("Event Type", GetOptionKeyFromMessageType(_selectedMessageType),
 					_options);
@@ -103,7 +115,17 @@ namespace Elixir.Overlay
 			{
 				_selectedMessageType = GetMessageTypeFromOption(_options[newSelectedIndex]);
 				UpdateParameterControls();
+				GUIUtility.ExitGUI();
 			}
+
+			var responseTypeParam = _currentParameters.Find(item => item.GetLabel() == "Response Type");
+			if (responseTypeParam is DropdownParameter responseTypeParamSpecific)
+				if (responseTypeParamSpecific.GetValue() != GetOptionFromResponseType(_selectedResponseType))
+				{
+					_selectedResponseType = GetResponseTypeFromOption(responseTypeParamSpecific.GetValue());
+					UpdateParameterControls();
+					GUIUtility.ExitGUI();
+				}
 
 			foreach (var param in _currentParameters)
 				param.DrawUI();
@@ -136,6 +158,149 @@ namespace Elixir.Overlay
 					else
 						throw new Exception("Invalid parameters");
 					break;
+				case MessageType.MTMKGetWalletResult:
+					var getWalletResultStatusParam = _currentParameters.Find(item => item.GetLabel() == "Status");
+					var getWalletResultEthAddressParam = _currentParameters.Find(item => item.GetLabel() == "EthAddress");
+					var getWalletResultSolAddressParam = _currentParameters.Find(item => item.GetLabel() == "SolAddress");
+					var getWalletResultEosAddressParam = _currentParameters.Find(item => item.GetLabel() == "EosAddress");
+					if (
+						getWalletResultStatusParam is StringParameter getWalletResultStatusParamSpecific &&
+						getWalletResultEthAddressParam is StringParameter getWalletResultEthAddressParamSpecific &&
+						getWalletResultSolAddressParam is StringParameter getWalletResultSolAddressParamSpecific &&
+						getWalletResultEosAddressParam is StringParameter getWalletResultEosAddressParamSpecific
+					)
+						OverlayMessage.Simulator_GetWalletResult(getWalletResultStatusParamSpecific.GetValue(),
+							getWalletResultEthAddressParamSpecific.GetValue(), getWalletResultSolAddressParamSpecific.GetValue(),
+							getWalletResultEosAddressParamSpecific.GetValue());
+					else
+						throw new Exception("Invalid parameters");
+					break;
+				case MessageType.MTMKSignTypedDataResult:
+					var signTypedDataResultStatusParam = _currentParameters.Find(item => item.GetLabel() == "Status");
+					var signTypedDataResultSignatureParam = _currentParameters.Find(item => item.GetLabel() == "Signature");
+					var signTypedDataResultRParam = _currentParameters.Find(item => item.GetLabel() == "R");
+					var signTypedDataResultSParam = _currentParameters.Find(item => item.GetLabel() == "S");
+					var signTypedDataResultVParam = _currentParameters.Find(item => item.GetLabel() == "V");
+					if (
+						signTypedDataResultStatusParam is StringParameter signTypedDataResultStatusParamSpecific &&
+						signTypedDataResultSignatureParam is StringParameter signTypedDataResultSignatureParamSpecific &&
+						signTypedDataResultRParam is StringParameter signTypedDataResultRParamSpecific &&
+						signTypedDataResultSParam is StringParameter signTypedDataResultSParamSpecific &&
+						signTypedDataResultVParam is StringParameter signTypedDataResultVParamSpecific
+					)
+						OverlayMessage.Simulator_SignTypedDataResult(signTypedDataResultStatusParamSpecific.GetValue(),
+							signTypedDataResultSignatureParamSpecific.GetValue(), signTypedDataResultRParamSpecific.GetValue(),
+							signTypedDataResultSParamSpecific.GetValue(), signTypedDataResultVParamSpecific.GetValue());
+					else
+						throw new Exception("Invalid parameters");
+					break;
+				case MessageType.MTMKSignMessageResult:
+					var signMessageResultStatusParam = _currentParameters.Find(item => item.GetLabel() == "Status");
+					var signMessageResultResponseTypeParam = _currentParameters.Find(item => item.GetLabel() == "Response Type");
+					var signMessageResultSignatureParam = _currentParameters.Find(item => item.GetLabel() == "Signature");
+					if (
+						signMessageResultSignatureParam is StringParameter signMessageResultSignatureParamSpecific &&
+						signMessageResultStatusParam is StringParameter signMessageResultStatusParamSpecific &&
+						signMessageResultResponseTypeParam is DropdownParameter signMessageResultResponseTypeParamSpecific
+					)
+					{
+						var signMessageResultRParam = _currentParameters.Find(item => item.GetLabel() == "R");
+						var signMessageResultSParam = _currentParameters.Find(item => item.GetLabel() == "S");
+						var signMessageResultVParam = _currentParameters.Find(item => item.GetLabel() == "V");
+						switch (GetResponseTypeFromOption(signMessageResultResponseTypeParamSpecific.GetValue()))
+						{
+							case MKResponseType.MKResponseEVM:
+								if (
+									signMessageResultRParam is StringParameter signMessageResultRParamSpecific &&
+									signMessageResultSParam is StringParameter signMessageResultSParamSpecific &&
+									signMessageResultVParam is StringParameter signMessageResultVParamSpecific
+								)
+									OverlayMessage.Simulator_SignMessageResult(signMessageResultStatusParamSpecific.GetValue(),
+										new MMKSignMessageResultResponse(new MMKSignMessageResultResponseEVMInterop(
+											signMessageResultSignatureParamSpecific.GetValue(),
+											signMessageResultRParamSpecific.GetValue(),
+											signMessageResultSParamSpecific.GetValue(), signMessageResultVParamSpecific.GetValue()))
+									);
+								break;
+							case MKResponseType.MKResponseSolana:
+								OverlayMessage.Simulator_SignMessageResult(signMessageResultStatusParamSpecific.GetValue(),
+									new MMKSignMessageResultResponse(new MMKSignMessageResultResponseSolanaInterop(
+										signMessageResultSignatureParamSpecific.GetValue()))
+								);
+								break;
+							case MKResponseType.MKResponseEOS:
+								OverlayMessage.Simulator_SignMessageResult(signMessageResultStatusParamSpecific.GetValue(),
+									new MMKSignMessageResultResponse(new MMKSignMessageResultResponseEOSInterop(
+										signMessageResultSignatureParamSpecific.GetValue()))
+								);
+								break;
+						}
+					}
+					else
+					{
+						throw new Exception("Invalid parameters");
+					}
+
+					break;
+				case MessageType.MTMKSignTransactionResult:
+					var signTransactionResultStatusParam = _currentParameters.Find(item => item.GetLabel() == "Status");
+					var signTransactionResultResponseTypeParam =
+						_currentParameters.Find(item => item.GetLabel() == "Response Type");
+					var signTransactionResultSignatureParam = _currentParameters.Find(item => item.GetLabel() == "Signature");
+					if (
+						signTransactionResultSignatureParam is StringParameter signTransactionResultSignatureParamSpecific &&
+						signTransactionResultStatusParam is StringParameter signTransactionResultStatusParamSpecific &&
+						signTransactionResultResponseTypeParam is DropdownParameter signTransactionResultResponseTypeParamSpecific
+					)
+					{
+						var signTransactionResultSignedRawTransactionParam =
+							_currentParameters.Find(item => item.GetLabel() == "SignedRawTransaction");
+						var signTransactionResultTransactionHashParam =
+							_currentParameters.Find(item => item.GetLabel() == "TransactionHash");
+						var signTransactionResultRParam = _currentParameters.Find(item => item.GetLabel() == "R");
+						var signTransactionResultSParam = _currentParameters.Find(item => item.GetLabel() == "S");
+						var signTransactionResultVParam = _currentParameters.Find(item => item.GetLabel() == "V");
+						switch (GetResponseTypeFromOption(signTransactionResultResponseTypeParamSpecific.GetValue()))
+						{
+							case MKResponseType.MKResponseEVM:
+								if (
+									signTransactionResultSignedRawTransactionParam is StringParameter
+										signTransactionResultSignedRawTransactionParamSpecific &&
+									signTransactionResultTransactionHashParam is StringParameter
+										signTransactionResultTransactionHashParamSpecific &&
+									signTransactionResultRParam is StringParameter signTransactionResultRParamSpecific &&
+									signTransactionResultSParam is StringParameter signTransactionResultSParamSpecific &&
+									signTransactionResultVParam is StringParameter signTransactionResultVParamSpecific
+								)
+									OverlayMessage.Simulator_SignTransactionResult(signTransactionResultStatusParamSpecific.GetValue(),
+										new MMKSignTransactionResultResponse(new MMKSignTransactionResultResponseEVMInterop(
+											signTransactionResultSignedRawTransactionParamSpecific.GetValue(),
+											signTransactionResultTransactionHashParamSpecific.GetValue(),
+											signTransactionResultSignatureParamSpecific.GetValue(),
+											signTransactionResultRParamSpecific.GetValue(),
+											signTransactionResultSParamSpecific.GetValue(), signTransactionResultVParamSpecific.GetValue()))
+									);
+								break;
+							case MKResponseType.MKResponseSolana:
+								OverlayMessage.Simulator_SignTransactionResult(signTransactionResultStatusParamSpecific.GetValue(),
+									new MMKSignTransactionResultResponse(new MMKSignTransactionResultResponseSolanaInterop(
+										signTransactionResultSignatureParamSpecific.GetValue()))
+								);
+								break;
+							case MKResponseType.MKResponseEOS:
+								OverlayMessage.Simulator_SignTransactionResult(signTransactionResultStatusParamSpecific.GetValue(),
+									new MMKSignTransactionResultResponse(new MMKSignTransactionResultResponseEOSInterop(
+										signTransactionResultSignatureParamSpecific.GetValue()))
+								);
+								break;
+						}
+					}
+					else
+					{
+						throw new Exception("Invalid parameters");
+					}
+
+					break;
 			}
 
 			AddLog(new Message("Outgoing", GetOptionFromMessageType(_selectedMessageType), payload));
@@ -151,14 +316,29 @@ namespace Elixir.Overlay
 			return (MessageType)Enum.Parse(typeof(MessageType), option);
 		}
 
+		private MKResponseType GetResponseTypeFromOption(string option)
+		{
+			return (MKResponseType)Enum.Parse(typeof(MKResponseType), option);
+		}
+
 		private int GetOptionKeyFromMessageType(MessageType elixirMessageType)
 		{
 			return Array.FindIndex(_options, value => GetOptionFromMessageType(elixirMessageType) == value);
 		}
 
+		private int GetOptionKeyFromResponseType(MKResponseType responseType)
+		{
+			return Array.FindIndex(_responseTypeOptions, value => GetOptionFromResponseType(responseType) == value);
+		}
+
 		private string GetOptionFromMessageType(MessageType elixirMessageType)
 		{
 			return Enum.GetName(typeof(MessageType), elixirMessageType);
+		}
+
+		private string GetOptionFromResponseType(MKResponseType responseType)
+		{
+			return Enum.GetName(typeof(MKResponseType), responseType);
 		}
 
 		private void ProcessMessage(IMessage message)
@@ -168,6 +348,22 @@ namespace Elixir.Overlay
 				case MCheckout checkout:
 					AddLog(new Message("Incoming", GetOptionFromMessageType(MessageType.MTCheckout),
 						$"Sku: {checkout.Sku}"));
+					break;
+				case MMKGetWallet getWallet:
+					AddLog(new Message("Incoming", GetOptionFromMessageType(MessageType.MTMKGetWallet),
+						""));
+					break;
+				case MMKSignTypedData signTypedData:
+					AddLog(new Message("Incoming", GetOptionFromMessageType(MessageType.MTMKSignTypedData),
+						$"Message: {signTypedData.Message}, Reason: {signTypedData.Reason}"));
+					break;
+				case MMKSignMessage signMessage:
+					AddLog(new Message("Incoming", GetOptionFromMessageType(MessageType.MTMKSignMessage),
+						$"Message: {signMessage.Message}, Reason: {signMessage.Reason}"));
+					break;
+				case MMKSignTransaction signTransaction:
+					AddLog(new Message("Incoming", GetOptionFromMessageType(MessageType.MTMKSignTransaction),
+						$"Message: {signTransaction.Message}, Reason: {signTransaction.Reason}"));
 					break;
 			}
 		}
@@ -190,6 +386,70 @@ namespace Elixir.Overlay
 					break;
 				case MessageType.MTOpenStateChange:
 					_currentParameters.Add(new BooleanParameter("IsOpen"));
+					break;
+				case MessageType.MTMKGetWalletResult:
+					_currentParameters.Add(new StringParameter("Status"));
+					_currentParameters.Add(new StringParameter("EthAddress"));
+					_currentParameters.Add(new StringParameter("SolAddress"));
+					_currentParameters.Add(new StringParameter("EosAddress"));
+					break;
+				case MessageType.MTMKSignTypedDataResult:
+					_currentParameters.Add(new StringParameter("Status"));
+					_currentParameters.Add(new StringParameter("Signature"));
+					_currentParameters.Add(new StringParameter("R"));
+					_currentParameters.Add(new StringParameter("S"));
+					_currentParameters.Add(new StringParameter("V"));
+					break;
+				case MessageType.MTMKSignMessageResult:
+					var index = GetOptionKeyFromResponseType(_selectedResponseType);
+					_currentParameters.Add(new StringParameter("Status"));
+					_currentParameters.Add(new DropdownParameter("Response Type",
+						_responseTypeOptions,
+						GetOptionKeyFromResponseType(_selectedResponseType)));
+
+					switch (_selectedResponseType)
+					{
+						case MKResponseType.MKResponseEVM:
+							_currentParameters.Add(new StringParameter("Signature"));
+							_currentParameters.Add(new StringParameter("R"));
+							_currentParameters.Add(new StringParameter("S"));
+							_currentParameters.Add(new StringParameter("V"));
+							break;
+						case MKResponseType.MKResponseSolana:
+						case MKResponseType.MKResponseEOS:
+							_currentParameters.Add(new StringParameter("Signature"));
+							break;
+						case MKResponseType.MKResponseNone:
+						default:
+							break;
+					}
+
+					break;
+				case MessageType.MTMKSignTransactionResult:
+					_currentParameters.Add(new StringParameter("Status"));
+					_currentParameters.Add(new DropdownParameter("Response Type",
+						_responseTypeOptions,
+						GetOptionKeyFromResponseType(_selectedResponseType)));
+
+					switch (_selectedResponseType)
+					{
+						case MKResponseType.MKResponseEVM:
+							_currentParameters.Add(new StringParameter("SignedRawTransaction"));
+							_currentParameters.Add(new StringParameter("TransactionHash"));
+							_currentParameters.Add(new StringParameter("Signature"));
+							_currentParameters.Add(new StringParameter("R"));
+							_currentParameters.Add(new StringParameter("S"));
+							_currentParameters.Add(new StringParameter("V"));
+							break;
+						case MKResponseType.MKResponseSolana:
+						case MKResponseType.MKResponseEOS:
+							_currentParameters.Add(new StringParameter("Signature"));
+							break;
+						case MKResponseType.MKResponseNone:
+						default:
+							break;
+					}
+
 					break;
 			}
 		}
@@ -283,6 +543,39 @@ namespace Elixir.Overlay
 			}
 		}
 
+		private class DropdownParameter : IEventParameter
+		{
+			private readonly string _label;
+			private readonly string[] _options;
+			private int _selectedIndex;
+
+			public DropdownParameter(string label, string[] options, int? selectedIndex = 0)
+			{
+				_label = label;
+				_options = options;
+				_selectedIndex = selectedIndex.Value;
+			}
+
+			public void DrawUI()
+			{
+				_selectedIndex = EditorGUILayout.Popup(_label, _selectedIndex, _options);
+			}
+
+			public string GetLogString()
+			{
+				return $"{_label}: {_options[_selectedIndex]}";
+			}
+
+			public string GetLabel()
+			{
+				return _label;
+			}
+
+			public string GetValue()
+			{
+				return _options[_selectedIndex];
+			}
+		}
 
 		private class MessageTreeView : TreeView
 		{
