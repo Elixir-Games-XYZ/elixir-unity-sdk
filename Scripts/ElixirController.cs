@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
-#if !UNITY_ANDROID && !UNITY_IOS
+using Debug = UnityEngine.Debug;
+#if !UNITY_ANDROID && !UNITY_IOS && !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
 using Elixir.Overlay;
 using Event = Elixir.Overlay.Event;
 #endif
@@ -36,7 +37,7 @@ namespace Elixir
 		private void Update()
 		{
 			Auth.CheckToken(Time.deltaTime);
-#if !UNITY_ANDROID && !UNITY_IOS
+#if !UNITY_ANDROID && !UNITY_IOS && !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
 			OverlayMessage.Update();
 #endif
 		}
@@ -81,7 +82,7 @@ namespace Elixir
 		{
 			BaseWebService.apiKey = apiKey;
 			InitReiProgramArgument();
-#if !UNITY_ANDROID && !UNITY_IOS
+#if !UNITY_ANDROID && !UNITY_IOS && !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
 			OverlayMessage.Init(ProcessMessage);
 #endif
 			return true;
@@ -101,7 +102,7 @@ namespace Elixir
 			if (DebugLog) Debug.Log($"<color=#a0a000>[Elixir] {log}</color>");
 		}
 
-#if !UNITY_ANDROID && !UNITY_IOS
+#if !UNITY_ANDROID && !UNITY_IOS && !(UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
 		private void ProcessMessage(IMessage message)
 		{
 			Log("Event received");
@@ -114,6 +115,77 @@ namespace Elixir
 				case MCheckoutResult checkoutResult:
 					Log($"MCheckoutResult: {checkoutResult.Success}, {checkoutResult.Sku}");
 					Event.OnCheckoutResult(checkoutResult.Success, checkoutResult.Sku);
+					break;
+				case MMKGetWalletResult getWalletResult:
+					Log(
+						$"MMKGetWalletResult: {getWalletResult.Status}, {getWalletResult.EthAddress}, {getWalletResult.SolAddress}, {getWalletResult.EosAddress}");
+					Event.OnGetWalletResult(getWalletResult.Status, getWalletResult.EthAddress, getWalletResult.SolAddress,
+						getWalletResult.EosAddress);
+					break;
+				case MMKSignTypedDataResult signTypedDataResult:
+					Log(
+						$"MMKSignTypedDataResult: {signTypedDataResult.Status}, {signTypedDataResult.Signature}, {signTypedDataResult.R}, {signTypedDataResult.S}, {signTypedDataResult.V}");
+					Event.OnSignTypedDataResult(signTypedDataResult.Status, signTypedDataResult.Signature, signTypedDataResult.R,
+						signTypedDataResult.S, signTypedDataResult.V);
+					break;
+				case MMKSignMessageResult signMessageResult:
+					switch (signMessageResult.Response.type)
+					{
+						case MKResponseType.MKResponseEVM:
+							Log(
+								$"SignMessageResultEVM: {signMessageResult.Status}, {signMessageResult.Response.responseEVM.Signature}, {signMessageResult.Response.responseEVM.R}, {signMessageResult.Response.responseEVM.S}, {signMessageResult.Response.responseEVM.V}");
+							Event.OnSignMessageResult(signMessageResult.Status,
+								new SignMessageResultEVM(
+									signMessageResult.Response.responseEVM.Signature, signMessageResult.Response.responseEVM.R,
+									signMessageResult.Response.responseEVM.S,
+									signMessageResult.Response.responseEVM.V
+								), null, null);
+							break;
+						case MKResponseType.MKResponseSolana:
+							Log(
+								$"SignMessageResultSolana: {signMessageResult.Status}, {signMessageResult.Response.responseSolana.Signature}");
+							Event.OnSignMessageResult(signMessageResult.Status,
+								null, new SignMessageResultSolana(signMessageResult.Response.responseSolana.Signature), null);
+							break;
+						case MKResponseType.MKResponseEOS:
+							Log(
+								$"SignMessageResultEOS: {signMessageResult.Status}, {signMessageResult.Response.responseEOS.Signature}");
+							Event.OnSignMessageResult(signMessageResult.Status,
+								null, null, new SignMessageResultEOS(signMessageResult.Response.responseEOS.Signature));
+							break;
+					}
+
+					break;
+				case MMKSignTransactionResult signTransactionResult:
+					switch (signTransactionResult.Response.type)
+					{
+						case MKResponseType.MKResponseEVM:
+							Log(
+								$"SignTransactionResultEVM: {signTransactionResult.Status}, {signTransactionResult.Response.responseEVM.Signature}, {signTransactionResult.Response.responseEVM.SignedRawTransaction}, {signTransactionResult.Response.responseEVM.TransactionHash}, {signTransactionResult.Response.responseEVM.R}, {signTransactionResult.Response.responseEVM.S}, {signTransactionResult.Response.responseEVM.V}");
+							Event.OnSignTransactionResult(signTransactionResult.Status,
+								new SignTransactionResultEVM(
+									signTransactionResult.Response.responseEVM.Signature,
+									signTransactionResult.Response.responseEVM.SignedRawTransaction,
+									signTransactionResult.Response.responseEVM.TransactionHash,
+									signTransactionResult.Response.responseEVM.R,
+									signTransactionResult.Response.responseEVM.S,
+									signTransactionResult.Response.responseEVM.V
+								), null, null);
+							break;
+						case MKResponseType.MKResponseSolana:
+							Log(
+								$"SignTransactionResultSolana: {signTransactionResult.Status}, {signTransactionResult.Response.responseSolana.Signature}");
+							Event.OnSignTransactionResult(signTransactionResult.Status,
+								null, new SignTransactionResultSolana(signTransactionResult.Response.responseSolana.Signature), null);
+							break;
+						case MKResponseType.MKResponseEOS:
+							Log(
+								$"SignTransactionResultEOS: {signTransactionResult.Status}, {signTransactionResult.Response.responseEOS.Signature}");
+							Event.OnSignTransactionResult(signTransactionResult.Status,
+								null, null, new SignTransactionResultEOS(signTransactionResult.Response.responseEOS.Signature));
+							break;
+					}
+
 					break;
 				default:
 					Log("Event not processed");
