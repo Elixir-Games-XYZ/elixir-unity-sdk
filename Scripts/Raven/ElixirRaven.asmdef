@@ -5,8 +5,7 @@
     "macOSStandalone",
     "WindowsStandalone64",
     "WindowsStandalone32",
-    "LinuxStandalone64",
-    "LinuxStandaloneUniversal"
+    "LinuxStandalone64"
   ],
   "references": [],
   "autoReferenced": true
